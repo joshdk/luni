@@ -1,0 +1,218 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+import codecs
+import sys
+import os
+import re
+import time
+import sys
+import os.path
+import commands
+import subprocess
+
+
+
+class glyph:
+	symbol=u''
+	code=''
+
+	def __init__(self,_symbol,_code):
+		self.symbol=_symbol
+		self.code=_code
+
+
+def sprintu(glyphs=None,rawtext=None):
+	if glyphs==None:
+		return rawtext
+	
+	
+	ret=''
+	stacks=[]
+	count=0;
+	#for letter in rawtext:
+	i=0
+	while i < len(rawtext):
+		#print rawtext[i]
+		stacks.append("")
+		j=0
+		while j<len(stacks):
+			stacks[j]+=rawtext[i]
+			for glyph in glyphs:
+				if glyph.code==stacks[j]:
+					n=0
+					while n<j:
+						#print stacks[n][0]
+						ret+=stacks[n][0]
+						n+=1
+					#print glyph.symbol
+					ret+=glyph.symbol
+					stacks=[]
+					break
+					j=0
+
+			j+=1
+
+		i+=1
+	
+	for stack in stacks:
+		#print stack[0]
+		ret+=stack[0]
+
+	return ret
+
+
+
+def chop(text,delim):
+	front=''
+	back=''
+	escape=0
+	piece=0
+	for letter in text:
+		wb=''
+		if escape==0:
+			if letter=='\\':
+				escape=1;
+				continue
+			elif letter==delim:
+				piece=1
+				continue
+			else:
+				wb=letter
+		else:
+			escape=0;
+			if letter=='\\':
+				wb='\\'
+			elif letter==delim:
+				wb=delim
+			else:
+				wb=''
+				continue
+		if piece==0:
+			front+=wb
+		else:
+			back+=wb
+
+
+	return (front.strip(),back.strip())
+
+
+def get_symbol(code,glyphs=None):
+	if len(code)==0 or glyphs==None:
+		return ''
+	if code in glyphs:
+		return glyphs[code]
+	return ''
+
+
+
+
+
+
+
+def parse(text=None,glyphs=None):
+	escape=0
+	inside=0
+	stack=''
+	wb=''
+	ret=''
+	for char in text:
+		if escape==0:
+			if char=='\\':
+				escape=1;
+				continue
+			elif char==',':
+				if inside:
+					pass
+					if len(stack):
+						ret+=get_symbol(stack,glyphs)
+					stack=''
+				else:
+					wb=','
+			elif char=='{':
+				if inside:
+					pass
+				else:
+					inside=1
+			elif char=='}':
+				if inside:
+					inside=0
+					if len(stack):
+						ret+=get_symbol(stack,glyphs)
+					stack=''
+				else:
+					pass
+			else:
+				wb=char
+		else:
+			escape=0
+			if char=='\\':
+				wb='\\'
+			elif char=='{':
+				wb='{'
+			elif char=='}':
+				wb='}'
+			elif char==',':
+				wb=','
+
+		if inside:
+			stack+=wb
+		else:
+			ret+=wb
+		wb=''
+	
+
+	return ret
+
+
+
+
+
+
+def main(argv=None):
+	if argv is None:
+		argv = sys.argv
+	argc=len(argv)
+
+	paths=[]
+	if os.getenv('LUNI_BIN')!=None:
+		paths=os.getenv('LUNI_BIN').split(':')
+	else:
+		paths.append('../.glyphs/')
+	
+
+	glyphs={}
+	for path in paths:
+		p=subprocess.Popen(['find',path,'-name','*.txt','-type','f','-maxdepth','1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE);
+		output=p.communicate()[0].split('\n')
+		for line in output:
+			if len(line.strip())==0:
+				continue
+			f=open(line.strip(),'r')
+			for entry in f:
+				pair=chop(entry,':')
+#				print 'pair: ['+pair[0]+','+pair[1]+']'
+				if pair[0]!=None and pair[0]!='':
+					#print '['+pair[0]+']:['+pair[1]+']'
+					glyphs[pair[0]]=pair[1]
+#					print 'adding: ['+pair[0]+','+pair[1]+']'
+				#print 'path:'+path
+
+
+#	glyphs=[]
+#	fin=open('../.glyphs/glyphs.txt','r')
+#	for line in fin:
+#		pair=chop(line,':')
+#		if pair[1]!=None and pair[1]!='':
+#			#print '['+pair[0]+']:['+pair[1]+']'
+#			glyphs.append(glyph((pair[0]),(pair[1])))
+
+
+
+
+	for arg in argv[1:]:
+	#	print sprintu(glyphs,arg)
+		print parse(arg,glyphs)
+
+if __name__ == "__main__":
+	sys.exit(main())
+
