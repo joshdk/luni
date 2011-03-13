@@ -23,9 +23,6 @@ Chi:Χ
 Psi:Ψ
 Omega:Ω
 
-
-
-
 alpha:α
 beta:β
 gamma:γ
@@ -51,6 +48,4 @@ phi:φ
 chi:χ
 psi:ψ
 omega:ω
-
-
 
