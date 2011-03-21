@@ -173,45 +173,63 @@ def main(argv=None):
 		argv = sys.argv
 	argc=len(argv)
 
-	paths=[]
-	if os.getenv('LUNI_BIN')!=None:
-		paths=os.getenv('LUNI_BIN').split(':')
-	else:
-		paths.append('../.glyphs/')
+	if argc<2:
+		print 'luni: missing operand'
+		print 'Try `luni --help\' for more information.'
+		return 1
 	
-
-	glyphs={}
-	for path in paths:
-		p=subprocess.Popen(['find',path,'-name','*.txt','-type','f','-maxdepth','1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE);
-		output=p.communicate()[0].split('\n')
-		for line in output:
-			if len(line.strip())==0:
-				continue
-			f=open(line.strip(),'r')
-			for entry in f:
-				pair=chop(entry,':')
-#				print 'pair: ['+pair[0]+','+pair[1]+']'
-				if pair[0]!=None and pair[0]!='':
-					#print '['+pair[0]+']:['+pair[1]+']'
-					glyphs[pair[0]]=pair[1]
-#					print 'adding: ['+pair[0]+','+pair[1]+']'
-				#print 'path:'+path
-
-
-#	glyphs=[]
-#	fin=open('../.glyphs/glyphs.txt','r')
-#	for line in fin:
-#		pair=chop(line,':')
-#		if pair[1]!=None and pair[1]!='':
-#			#print '['+pair[0]+']:['+pair[1]+']'
-#			glyphs.append(glyph((pair[0]),(pair[1])))
+	if argv[1]=='--help':
+		print 'help text'
+	elif argv[1]=='--version':
+		print 'version text'
+	elif argv[1]=='-t':
 
 
 
 
-	for arg in argv[1:]:
-	#	print sprintu(glyphs,arg)
-		print parse(arg,glyphs)
+
+
+		paths=[]
+		if os.getenv('LUNI_BIN')!=None:
+			paths=os.getenv('LUNI_BIN').split(':')
+		else:
+			paths.append('/etc/luni/glyphs/')
+		
+
+		glyphs={}
+		for path in paths:
+			p=subprocess.Popen(['find',path,'-name','*.txt','-type','f','-maxdepth','1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE);
+			output=p.communicate()[0].split('\n')
+			for line in output:
+				if len(line.strip())==0:
+					continue
+				f=open(line.strip(),'r')
+				for entry in f:
+					pair=chop(entry,':')
+	#				print 'pair: ['+pair[0]+','+pair[1]+']'
+					if pair[0]!=None and pair[0]!='':
+						#print '['+pair[0]+']:['+pair[1]+']'
+						glyphs[pair[0]]=pair[1]
+	#					print 'adding: ['+pair[0]+','+pair[1]+']'
+					#print 'path:'+path
+
+
+	#	glyphs=[]
+	#	fin=open('../.glyphs/glyphs.txt','r')
+	#	for line in fin:
+	#		pair=chop(line,':')
+	#		if pair[1]!=None and pair[1]!='':
+	#			#print '['+pair[0]+']:['+pair[1]+']'
+	#			glyphs.append(glyph((pair[0]),(pair[1])))
+
+
+
+
+		for arg in argv[2:]:
+		#	print sprintu(glyphs,arg)
+			print parse(arg,glyphs)
+
+	
 
 if __name__ == "__main__":
 	sys.exit(main())
